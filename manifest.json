@@ -4,12 +4,18 @@
   "description": "Your daily life reset checklist",
   "start_url": "/daily-reset-checklist/",
   "display": "standalone",
-  "background_color": "#0A0A0F",
-  "theme_color": "#0A0A0F",
+  "background_color": "#080807",
+  "theme_color": "#080807",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
