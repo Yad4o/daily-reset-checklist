@@ -1,0 +1,17 @@
+{
+  "name": "Daily Life Reset",
+  "short_name": "Daily Reset",
+  "description": "Your daily life reset checklist",
+  "start_url": "/daily-reset-checklist/",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#0A0A0F",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
