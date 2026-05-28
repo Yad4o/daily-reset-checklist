@@ -3,183 +3,610 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Daily Life Reset</title>
+  <title>Daily Reset</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0A0A0F" />
+  <meta name="theme-color" content="#080807" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Daily Reset" />
   <link rel="apple-touch-icon" href="icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Marcellus&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0A0A0F; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #111; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-    .check-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 16px; cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080807;
+      --surface: #0e0d0c;
+      --surface-2: #141310;
+      --border: rgba(196,162,90,0.12);
+      --border-hover: rgba(196,162,90,0.25);
+      --gold: #C4A25A;
+      --gold-light: #E2C87A;
+      --gold-muted: rgba(196,162,90,0.5);
+      --text: #E8E2D4;
+      --text-dim: #8A8070;
+      --text-muted: #4A4438;
+      --success: #7DB88E;
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-display: 'Marcellus', Georgia, serif;
+      --font-mono: 'DM Mono', 'Courier New', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    #root { position: relative; z-index: 1; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--gold-muted); border-radius: 2px; }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 52px 24px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 24px; right: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-muted), transparent);
+    }
+
+    .header-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: var(--gold-muted);
+    }
+
+    .header-title {
+      font-family: var(--font-display);
+      font-size: 52px;
+      letter-spacing: 0.04em;
+      line-height: 0.95;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .header-title span { color: var(--gold); }
+
+    .header-date {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 16px;
+      color: var(--text-dim);
+      margin: 16px 0 24px;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── OVERALL PROGRESS ── */
+    .overall-progress {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      margin: 28px 20px 0;
+    }
+
+    .op-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .op-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .op-percent {
+      font-family: var(--font-display);
+      font-size: 36px;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .op-count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .op-bar-track {
+      height: 2px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 1px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .op-bar-fill {
+      height: 100%;
+      border-radius: 1px;
+      background: linear-gradient(90deg, #8B6A2E, var(--gold), var(--gold-light));
+      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+    }
+    .op-bar-fill::after {
+      content: '';
+      position: absolute;
+      right: 0; top: -2px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold-light);
+      box-shadow: 0 0 6px var(--gold);
+    }
+
+    .op-perfect {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(125,184,142,0.08);
+      border: 1px solid rgba(125,184,142,0.2);
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 14px;
+      color: var(--success);
+      text-align: center;
+      letter-spacing: 0.03em;
+      animation: fadeUp 0.4s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SECTIONS CONTAINER ── */
+    .sections-wrap {
+      padding: 24px 20px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── SECTION CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--border-hover); }
+    .card.all-done { border-color: rgba(125,184,142,0.25); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      cursor: pointer;
+      user-select: none;
+      gap: 12px;
+    }
+    .card-header:active { opacity: 0.85; }
+
+    .card-left {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-emoji {
+      font-size: 20px;
+      flex-shrink: 0;
+      width: 32px;
+      text-align: center;
+    }
+
+    .card-title-wrap { min-width: 0; }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      letter-spacing: 0.05em;
+      line-height: 1.1;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card.all-done .card-title { color: var(--success); }
+    .card-subtitle {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
+
+    .card-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .card-mini-ring {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+    }
+    .card-mini-ring svg {
+      transform: rotate(-90deg);
+    }
+    .ring-track {
+      stroke: rgba(255,255,255,0.06);
+      fill: none;
+    }
+    .ring-fill {
+      fill: none;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .card-mini-count {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--text-dim);
+    }
+
+    .card-chevron {
+      color: var(--text-muted);
+      font-size: 13px;
+      transition: transform 0.25s ease;
+      flex-shrink: 0;
+    }
+    .card-chevron.open { transform: rotate(90deg); }
+
+    /* ── BODY (items) ── */
+    .card-body {
+      border-top: 1px solid var(--border);
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .card-body.open {
+      max-height: 2000px;
+    }
+
+    .card-note {
+      padding: 10px 18px;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.03em;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 12px 18px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
       transition: background 0.15s;
       user-select: none;
     }
-    .check-row:hover { background: rgba(255,255,255,0.04); }
-    .check-row:last-child { border-bottom: none; }
-    .checkbox {
-      width: 18px; height: 18px; border-radius: 3px;
-      border: 1.5px solid rgba(255,255,255,0.25);
-      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    .item-row:last-child { border-bottom: none; }
+    .item-row:hover { background: rgba(196,162,90,0.04); }
+    .item-row:active { background: rgba(196,162,90,0.08); }
+
+    .item-check {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid rgba(196,162,90,0.25);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+    }
+    .item-check.done {
+      border-color: transparent;
+    }
+    .item-check svg {
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .item-check.done svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .item-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text);
       transition: all 0.2s;
+      letter-spacing: 0.01em;
     }
-    .label-text { font-size: 13px; line-height: 1.4; transition: all 0.2s; font-family: 'DM Mono', monospace; color: #E8E6E0; }
-    .label-text.done { opacity: 0.35; text-decoration: line-through; }
-    .section-card {
-      margin: 0 16px 12px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
+    .item-label.done {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      text-decoration-color: var(--text-muted);
     }
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 16px; cursor: pointer;
+
+    /* ── FOOTER ── */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 24px 28px;
+      background: linear-gradient(0deg, var(--bg) 60%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .footer-quote {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      flex: 1;
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      padding: 9px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .reset-btn:hover {
+      border-color: rgba(196,162,90,0.4);
+      color: var(--gold);
+      background: rgba(196,162,90,0.05);
+    }
+
+    /* ── Divider ornament ── */
+    .ornament {
+      text-align: center;
+      color: var(--border);
+      font-size: 14px;
+      letter-spacing: 4px;
+      margin: 4px 0;
       user-select: none;
     }
-    .progress-bar-inner {
-      height: 100%; border-radius: 6px;
-      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
     }
-    .reset-btn {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #E8E6E0; font-family: 'DM Mono', monospace;
-      padding: 8px 20px; border-radius: 6px;
-      cursor: pointer; font-size: 12px; letter-spacing: 1px;
-      transition: all 0.2s;
+
+    .gold-shimmer {
+      background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 40%, var(--gold) 80%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
     }
-    .reset-btn:hover { background: rgba(255,255,255,0.1); }
-    .arrow { color: #444; font-size: 14px; transition: transform 0.2s; display: inline-block; }
   </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const sections = [
-  { id:"morning",emoji:"🌅",title:"MORNING",subtitle:"5:30 AM",color:"#FF6B35",items:["Wake up","Drink water","Open curtains/window for sunlight","NO scrolling reels after waking","Freshen up / toilet","Wear gym clothes"] },
-  { id:"gym",emoji:"🏋️",title:"GYM",subtitle:"5:45–6:45 AM",color:"#E63946",items:["Workout properly","Drink water during workout","Don't touch face too much","Small cooldown/stretch"] },
-  { id:"bath",emoji:"🚿",title:"AFTER GYM / BATH",subtitle:"Hygiene",color:"#457B9D",items:["Shampoo (ONLY 2–3x/week)","Conditioner after shampoo (hair lengths only)","Soap underarms","Soap neck","Soap chest","Soap groin","Soap feet","Wash body properly","Dry body properly","Pat face dry gently"] },
-  { id:"skincare",emoji:"🧴",title:"MORNING SKINCARE",subtitle:"Look fresh",color:"#2D6A4F",items:["Use Derma Co face wash","Apply Pond's light moisturizer","Apply sunscreen SPF 50","Apply deodorant on underarms","Comb hair"] },
-  { id:"breakfast",emoji:"🍳",title:"BREAKFAST",subtitle:"Fuel up",color:"#F4A261",items:["Eat protein","Avoid junk breakfast","Drink water"],note:"eggs · oats · poha + peanuts · curd · banana" },
-  { id:"before_internship",emoji:"💼",title:"BEFORE INTERNSHIP",subtitle:"Be ready",color:"#6B4226",items:["Clean clothes","Water bottle filled","Laptop/charger ready","Wallet/keys/check essentials"] },
-  { id:"internship",emoji:"💻",title:"INTERNSHIP",subtitle:"10:30 AM – 7 PM",color:"#3D405B",items:["Sit with good posture","Drink water regularly","Avoid mindless scrolling","Walk during breaks","Stretch body sometimes","Eat lunch properly"] },
-  { id:"lunch",emoji:"🍱",title:"LUNCH",subtitle:"Midday fuel",color:"#E9C46A",items:["Eat protein source","Don't overeat","Avoid cold drinks"],note:"chicken + rice · dal + chapati · paneer · eggs · curd" },
-  { id:"evening",emoji:"☀️",title:"EVENING",subtitle:"Wind down",color:"#E76F51",items:["Small walk","Light snack only if hungry","No binge eating","Limit junk food"] },
-  { id:"dinner",emoji:"🍽️",title:"DINNER",subtitle:"Light & clean",color:"#264653",items:["Eat controlled portion","Protein included","Drink water"] },
-  { id:"night",emoji:"🌙",title:"NIGHT ROUTINE",subtitle:"Reset for tomorrow",color:"#5C4A8A",items:["Wash face with Derma Co face wash","Apply small amount moisturizer","Brush teeth","Clean tongue","Fill water bottle for tomorrow","Keep clothes ready for tomorrow","Keep room slightly clean"] },
-  { id:"sleep",emoji:"🛏️",title:"BEFORE SLEEP",subtitle:"Sleep by 10:30–11 PM",color:"#1D3557",items:["No heavy scrolling","Lights dim","Fan/room cool","Sleep by 10:30–11 PM"] },
-  { id:"health",emoji:"💧",title:"DAILY HEALTH",subtitle:"Non-negotiables",color:"#0096C7",items:["3–4L water","No cold drinks","No excessive sugar","No random junk snacking","Good posture","Sunlight exposure","Walk enough steps"] },
-  { id:"glowup",emoji:"🔥",title:"GLOW-UP",subtitle:"Look the part",color:"#FB8500",items:["Clean nails","Clean shoes/slippers","Fresh clothes","Good smell/deodorant","Hair maintained","Pillow cover clean"] },
-  { id:"weekly",emoji:"📅",title:"WEEKLY TASKS",subtitle:"Do these regularly",color:"#606C38",items:["Change pillow cover","Wash bedsheet","Clean room","Organize desk","Trim nails","Wash shoes/slippers if dirty"] },
-  { id:"productivity",emoji:"🧠",title:"PRODUCTIVITY",subtitle:"Grow daily",color:"#7B2D8B",items:["Learn something daily","Coding/DSA practice","Chess practice","Read/documentation learning","Limit reels/social media"] },
-  { id:"rules",emoji:"⚔️",title:"MAIN RULES",subtitle:"Live by these",color:"#B5121B",items:["Consistency > perfection","Don't quit after one bad day","Small progress daily matters","Sleep properly","Keep room/environment clean","Stay disciplined even when motivation is low"] },
+  { id:"morning",  emoji:"🌅", title:"Morning",         subtitle:"5:30 AM",           color:"#C4873A", items:["Wake up","Drink water","Open curtains for sunlight","No scrolling reels after waking","Freshen up / toilet","Wear gym clothes"] },
+  { id:"gym",      emoji:"🏋️", title:"Gym",             subtitle:"5:45 – 6:45 AM",     color:"#C45A5A", items:["Workout properly","Drink water during workout","Don't touch face","Small cooldown / stretch"] },
+  { id:"bath",     emoji:"🚿", title:"After Gym & Bath", subtitle:"Hygiene",            color:"#5A8FC4", items:["Shampoo (only 2–3× /week)","Conditioner on lengths","Soap underarms","Soap neck","Soap chest","Soap groin","Soap feet","Wash body properly","Dry body properly","Pat face dry gently"] },
+  { id:"skincare", emoji:"🧴", title:"Morning Skincare", subtitle:"Look fresh",         color:"#5AC48F", items:["Derma Co face wash","Pond's light moisturizer","Sunscreen SPF 50","Deodorant on underarms","Comb hair"] },
+  { id:"breakfast",emoji:"🍳", title:"Breakfast",        subtitle:"Fuel up",           color:"#C4A25A", items:["Eat protein","Avoid junk breakfast","Drink water"], note:"eggs · oats · poha + peanuts · curd · banana" },
+  { id:"prep",     emoji:"💼", title:"Before Internship", subtitle:"Be ready",         color:"#8B6A3A", items:["Clean clothes","Water bottle filled","Laptop & charger ready","Wallet / keys / essentials checked"] },
+  { id:"internship",emoji:"💻",title:"Internship",       subtitle:"10:30 AM – 7 PM",   color:"#5A6A8F", items:["Good posture","Drink water regularly","Avoid mindless scrolling","Walk during breaks","Stretch body sometimes","Eat lunch properly"] },
+  { id:"lunch",    emoji:"🍱", title:"Lunch",            subtitle:"Midday fuel",       color:"#C4B45A", items:["Eat protein source","Don't overeat","Avoid cold drinks"], note:"chicken + rice · dal + chapati · paneer · eggs · curd" },
+  { id:"evening",  emoji:"☀️", title:"Evening",          subtitle:"Wind down",         color:"#C4713A", items:["Small walk","Light snack only if hungry","No binge eating","Limit junk food"] },
+  { id:"dinner",   emoji:"🍽️", title:"Dinner",           subtitle:"Light & clean",     color:"#3A6A7A", items:["Controlled portion","Protein included","Drink water"] },
+  { id:"night",    emoji:"🌙", title:"Night Routine",    subtitle:"Reset for tomorrow", color:"#7A5AC4", items:["Derma Co face wash","Small amount moisturizer","Brush teeth","Clean tongue","Fill water bottle","Clothes ready for tomorrow","Room slightly clean"] },
+  { id:"sleep",    emoji:"🛏️", title:"Before Sleep",     subtitle:"Lights out 10:30–11 PM", color:"#3A4A7A", items:["No heavy scrolling","Lights dim","Room cool","Sleep by 10:30–11 PM"] },
+  { id:"health",   emoji:"💧", title:"Daily Health",     subtitle:"Non-negotiables",   color:"#3A8FC4", items:["3–4 L water","No cold drinks","No excessive sugar","No random junk snacking","Good posture","Sunlight exposure","Enough steps"] },
+  { id:"glowup",   emoji:"🔥", title:"Glow-Up",          subtitle:"Look the part",     color:"#C4823A", items:["Clean nails","Clean shoes/slippers","Fresh clothes","Good smell / deodorant","Hair maintained","Pillow cover clean"] },
+  { id:"weekly",   emoji:"📅", title:"Weekly Tasks",     subtitle:"Do these regularly", color:"#7A8C3A", items:["Change pillow cover","Wash bedsheet","Clean room","Organize desk","Trim nails","Wash shoes if dirty"] },
+  { id:"prod",     emoji:"🧠", title:"Productivity",     subtitle:"Grow daily",        color:"#8B3AC4", items:["Learn something daily","Coding / DSA practice","Chess practice","Read / docs learning","Limit reels & social media"] },
+  { id:"rules",    emoji:"⚔️", title:"Main Rules",       subtitle:"Live by these",     color:"#C43A3A", items:["Consistency > perfection","Don't quit after one bad day","Small progress daily matters","Sleep properly","Keep environment clean","Stay disciplined when motivation is low"] },
 ];
 
-const getTodayKey = () => new Date().toISOString().split("T")[0];
+const getDayKey = () => new Date().toISOString().split("T")[0];
+
+const formatDate = () => {
+  const d = new Date();
+  return d.toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+};
+
+function MiniRing({ done, total, color }) {
+  const r = 13;
+  const circ = 2 * Math.PI * r;
+  const pct = total === 0 ? 0 : done / total;
+  const offset = circ - pct * circ;
+  return (
+    <div className="card-mini-ring">
+      <svg width="34" height="34" viewBox="0 0 34 34">
+        <circle className="ring-track" cx="17" cy="17" r={r} strokeWidth="2" />
+        <circle
+          className="ring-fill"
+          cx="17" cy="17" r={r}
+          strokeWidth="2"
+          stroke={done === total ? "#7DB88E" : color}
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <div className="card-mini-count">{done}/{total}</div>
+    </div>
+  );
+}
+
+function SectionCard({ section, checked, onToggle }) {
+  const [open, setOpen] = React.useState(false);
+  const done = section.items.filter((_, i) => checked[section.id + "_" + i]).length;
+  const total = section.items.length;
+  const allDone = done === total;
+
+  return (
+    <div className={`card${allDone ? " all-done" : ""}`}>
+      <div className="card-header" onClick={() => setOpen(o => !o)}>
+        <div className="card-left">
+          <div className="card-emoji">{section.emoji}</div>
+          <div className="card-title-wrap">
+            <div className="card-title">{section.title}</div>
+            <div className="card-subtitle">{section.subtitle}</div>
+          </div>
+        </div>
+        <div className="card-right">
+          <MiniRing done={done} total={total} color={section.color} />
+          <div className={`card-chevron${open ? " open" : ""}`}>›</div>
+        </div>
+      </div>
+
+      <div className={`card-body${open ? " open" : ""}`}>
+        {section.note && <div className="card-note">{section.note}</div>}
+        {section.items.map((item, i) => {
+          const isDone = !!checked[section.id + "_" + i];
+          return (
+            <div key={i} className="item-row" onClick={() => onToggle(section.id, i)}>
+              <div className={`item-check${isDone ? " done" : ""}`} style={{ background: isDone ? section.color + "22" : "transparent", borderColor: isDone ? section.color : undefined }}>
+                <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                  <path d="M1 3.5L3.2 5.5L8 1" stroke={section.color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <span className={`item-label${isDone ? " done" : ""}`}>{item}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [checked, setChecked] = React.useState({});
-  const [todayKey] = React.useState(getTodayKey());
-  const [activeSection, setActiveSection] = React.useState(null);
+  const dayKey = getDayKey();
 
   React.useEffect(() => {
-    const stored = localStorage.getItem("checklist_" + todayKey);
-    if (stored) setChecked(JSON.parse(stored));
-  }, [todayKey]);
+    const s = localStorage.getItem("dreset_" + dayKey);
+    if (s) { try { setChecked(JSON.parse(s)); } catch {} }
+  }, []);
 
   React.useEffect(() => {
-    localStorage.setItem("checklist_" + todayKey, JSON.stringify(checked));
-  }, [checked, todayKey]);
+    localStorage.setItem("dreset_" + dayKey, JSON.stringify(checked));
+  }, [checked]);
 
-  const toggle = (sectionId, idx) => {
-    const key = sectionId + "_" + idx;
-    setChecked(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggle = (sid, idx) => {
+    const k = sid + "_" + idx;
+    setChecked(p => ({ ...p, [k]: !p[k] }));
   };
 
-  const totalItems = sections.reduce((a, s) => a + s.items.length, 0);
-  const doneItems = Object.values(checked).filter(Boolean).length;
-  const percent = Math.round((doneItems / totalItems) * 100);
-
-  const resetDay = () => setChecked({});
-  const sectionDone = s => s.items.filter((_, i) => checked[s.id + "_" + i]).length;
+  const total = sections.reduce((a, s) => a + s.items.length, 0);
+  const done  = Object.values(checked).filter(Boolean).length;
+  const pct   = total === 0 ? 0 : Math.round((done / total) * 100);
+  const perfect = pct === 100;
 
   return (
-    <div style={{ minHeight:"100vh", background:"#0A0A0F", fontFamily:"'DM Mono','Courier New',monospace", color:"#E8E6E0", padding:"0 0 80px 0" }}>
-      <div style={{ padding:"32px 16px 20px", background:"linear-gradient(180deg,#111118 0%,#0A0A0F 100%)", borderBottom:"1px solid rgba(255,255,255,0.06)", marginBottom:"20px" }}>
-        <div style={{ fontSize:11, letterSpacing:3, color:"#666", marginBottom:6, textTransform:"uppercase" }}>Daily Life Reset</div>
-        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:42, letterSpacing:2, lineHeight:1, marginBottom:16 }}>TODAY'S CHECKLIST</div>
-        <div style={{ fontSize:11, color:"#555", marginBottom:14 }}>{new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div>
-        <div style={{ background:"rgba(255,255,255,0.06)", borderRadius:8, height:8, marginBottom:8, overflow:"hidden" }}>
-          <div style={{ width:percent+"%", background: percent===100?"linear-gradient(90deg,#4CAF50,#81C784)":percent>60?"linear-gradient(90deg,#FF6B35,#FFB347)":"linear-gradient(90deg,#E63946,#FF6B35)", height:"100%", borderRadius:8, transition:"width 0.4s" }} />
+    <div>
+      {/* Header */}
+      <div className="header">
+        <div className="header-eyebrow">Daily Life Reset</div>
+        <div className="header-title">
+          Today's<br /><span className="gold-shimmer">Ritual</span>
         </div>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <span style={{ fontSize:12, color:"#888" }}>{doneItems} / {totalItems} done</span>
-          <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, color:percent===100?"#81C784":"#E8E6E0" }}>{percent}%</span>
-        </div>
-        {percent===100 && <div style={{ marginTop:10, padding:"8px 12px", background:"rgba(76,175,80,0.12)", borderRadius:6, border:"1px solid rgba(76,175,80,0.3)", fontSize:12, color:"#81C784", textAlign:"center" }}>🎉 PERFECT DAY. You crushed it.</div>}
+        <div className="header-date">{formatDate()}</div>
       </div>
 
-      {sections.map(section => {
-        const done = sectionDone(section);
-        const total = section.items.length;
-        const allDone = done === total;
-        const isOpen = activeSection === section.id;
-        return (
-          <div key={section.id} className="section-card" style={{ background:"#111118" }}>
-            <div className="section-header" style={{ background:allDone?"rgba(76,175,80,0.08)":"transparent" }}
-              onClick={() => setActiveSection(isOpen ? null : section.id)}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:20 }}>{section.emoji}</span>
-                <div>
-                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:1, color:allDone?"#81C784":"#E8E6E0" }}>{section.title}</div>
-                  <div style={{ fontSize:10, color:"#555", letterSpacing:1 }}>{section.subtitle}</div>
-                </div>
-              </div>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ textAlign:"right" }}>
-                  <div style={{ fontSize:11, color:allDone?"#81C784":"#666" }}>{done}/{total}</div>
-                  <div style={{ width:40, height:3, background:"rgba(255,255,255,0.08)", borderRadius:2, marginTop:3 }}>
-                    <div style={{ width:((done/total)*100)+"%", height:"100%", background:section.color, borderRadius:2, transition:"width 0.3s" }} />
-                  </div>
-                </div>
-                <span className="arrow" style={{ transform:isOpen?"rotate(90deg)":"rotate(0deg)" }}>›</span>
-              </div>
-            </div>
-            {isOpen && (
-              <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)" }}>
-                {section.note && <div style={{ padding:"8px 16px", fontSize:11, color:"#555", borderBottom:"1px solid rgba(255,255,255,0.04)", fontStyle:"italic" }}>{section.note}</div>}
-                {section.items.map((item, i) => {
-                  const isDone = !!checked[section.id+"_"+i];
-                  return (
-                    <div key={i} className="check-row" onClick={() => toggle(section.id, i)}>
-                      <div className="checkbox" style={{ background:isDone?section.color:"transparent", borderColor:isDone?"transparent":"rgba(255,255,255,0.25)" }}>
-                        {isDone && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                      </div>
-                      <span className={"label-text"+(isDone?" done":"")}>{item}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+      {/* Overall progress */}
+      <div className="overall-progress">
+        <div className="op-top">
+          <div>
+            <div className="op-label">Overall Progress</div>
+            <div className="op-count" style={{ marginTop: 4 }}>{done} of {total} tasks</div>
           </div>
-        );
-      })}
-      <div style={{ textAlign:"center", padding:"24px 16px 0", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
-        <div style={{ fontSize:11, color:"#444", letterSpacing:1 }}>CONSISTENCY &gt; PERFECTION</div>
-        <button className="reset-btn" onClick={resetDay}>RESET FOR TODAY</button>
+          <div className={`op-percent${perfect ? " gold-shimmer" : ""}`}>{pct}<span style={{ fontSize: 18 }}>%</span></div>
+        </div>
+        <div className="op-bar-track">
+          <div className="op-bar-fill" style={{ width: pct + "%" }} />
+        </div>
+        {perfect && (
+          <div className="op-perfect">✦ Perfect day. You crushed it. ✦</div>
+        )}
+      </div>
+
+      {/* Sections */}
+      <div className="sections-wrap">
+        {sections.map((s, i) => (
+          <React.Fragment key={s.id}>
+            {i > 0 && i % 4 === 0 && <div className="ornament">· · ·</div>}
+            <SectionCard section={s} checked={checked} onToggle={toggle} />
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="footer">
+        <div className="footer-quote">Consistency &gt; Perfection</div>
+        <button className="reset-btn" onClick={() => setChecked({})}>Reset Day</button>
       </div>
     </div>
   );
