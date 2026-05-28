@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Life Reset</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0A0A0F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Daily Reset" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0A0A0F; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    .check-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .check-row:hover { background: rgba(255,255,255,0.04); }
+    .check-row:last-child { border-bottom: none; }
+    .checkbox {
+      width: 18px; height: 18px; border-radius: 3px;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .label-text { font-size: 13px; line-height: 1.4; transition: all 0.2s; font-family: 'DM Mono', monospace; color: #E8E6E0; }
+    .label-text.done { opacity: 0.35; text-decoration: line-through; }
+    .section-card {
+      margin: 0 16px 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; cursor: pointer;
+      user-select: none;
+    }
+    .progress-bar-inner {
+      height: 100%; border-radius: 6px;
+      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .reset-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #E8E6E0; font-family: 'DM Mono', monospace;
+      padding: 8px 20px; border-radius: 6px;
+      cursor: pointer; font-size: 12px; letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover { background: rgba(255,255,255,0.1); }
+    .arrow { color: #444; font-size: 14px; transition: transform 0.2s; display: inline-block; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const sections = [
+  { id:"morning",emoji:"🌅",title:"MORNING",subtitle:"5:30 AM",color:"#FF6B35",items:["Wake up","Drink water","Open curtains/window for sunlight","NO scrolling reels after waking","Freshen up / toilet","Wear gym clothes"] },
+  { id:"gym",emoji:"🏋️",title:"GYM",subtitle:"5:45–6:45 AM",color:"#E63946",items:["Workout properly","Drink water during workout","Don't touch face too much","Small cooldown/stretch"] },
+  { id:"bath",emoji:"🚿",title:"AFTER GYM / BATH",subtitle:"Hygiene",color:"#457B9D",items:["Shampoo (ONLY 2–3x/week)","Conditioner after shampoo (hair lengths only)","Soap underarms","Soap neck","Soap chest","Soap groin","Soap feet","Wash body properly","Dry body properly","Pat face dry gently"] },
+  { id:"skincare",emoji:"🧴",title:"MORNING SKINCARE",subtitle:"Look fresh",color:"#2D6A4F",items:["Use Derma Co face wash","Apply Pond's light moisturizer","Apply sunscreen SPF 50","Apply deodorant on underarms","Comb hair"] },
+  { id:"breakfast",emoji:"🍳",title:"BREAKFAST",subtitle:"Fuel up",color:"#F4A261",items:["Eat protein","Avoid junk breakfast","Drink water"],note:"eggs · oats · poha + peanuts · curd · banana" },
+  { id:"before_internship",emoji:"💼",title:"BEFORE INTERNSHIP",subtitle:"Be ready",color:"#6B4226",items:["Clean clothes","Water bottle filled","Laptop/charger ready","Wallet/keys/check essentials"] },
+  { id:"internship",emoji:"💻",title:"INTERNSHIP",subtitle:"10:30 AM – 7 PM",color:"#3D405B",items:["Sit with good posture","Drink water regularly","Avoid mindless scrolling","Walk during breaks","Stretch body sometimes","Eat lunch properly"] },
+  { id:"lunch",emoji:"🍱",title:"LUNCH",subtitle:"Midday fuel",color:"#E9C46A",items:["Eat protein source","Don't overeat","Avoid cold drinks"],note:"chicken + rice · dal + chapati · paneer · eggs · curd" },
+  { id:"evening",emoji:"☀️",title:"EVENING",subtitle:"Wind down",color:"#E76F51",items:["Small walk","Light snack only if hungry","No binge eating","Limit junk food"] },
+  { id:"dinner",emoji:"🍽️",title:"DINNER",subtitle:"Light & clean",color:"#264653",items:["Eat controlled portion","Protein included","Drink water"] },
+  { id:"night",emoji:"🌙",title:"NIGHT ROUTINE",subtitle:"Reset for tomorrow",color:"#5C4A8A",items:["Wash face with Derma Co face wash","Apply small amount moisturizer","Brush teeth","Clean tongue","Fill water bottle for tomorrow","Keep clothes ready for tomorrow","Keep room slightly clean"] },
+  { id:"sleep",emoji:"🛏️",title:"BEFORE SLEEP",subtitle:"Sleep by 10:30–11 PM",color:"#1D3557",items:["No heavy scrolling","Lights dim","Fan/room cool","Sleep by 10:30–11 PM"] },
+  { id:"health",emoji:"💧",title:"DAILY HEALTH",subtitle:"Non-negotiables",color:"#0096C7",items:["3–4L water","No cold drinks","No excessive sugar","No random junk snacking","Good posture","Sunlight exposure","Walk enough steps"] },
+  { id:"glowup",emoji:"🔥",title:"GLOW-UP",subtitle:"Look the part",color:"#FB8500",items:["Clean nails","Clean shoes/slippers","Fresh clothes","Good smell/deodorant","Hair maintained","Pillow cover clean"] },
+  { id:"weekly",emoji:"📅",title:"WEEKLY TASKS",subtitle:"Do these regularly",color:"#606C38",items:["Change pillow cover","Wash bedsheet","Clean room","Organize desk","Trim nails","Wash shoes/slippers if dirty"] },
+  { id:"productivity",emoji:"🧠",title:"PRODUCTIVITY",subtitle:"Grow daily",color:"#7B2D8B",items:["Learn something daily","Coding/DSA practice","Chess practice","Read/documentation learning","Limit reels/social media"] },
+  { id:"rules",emoji:"⚔️",title:"MAIN RULES",subtitle:"Live by these",color:"#B5121B",items:["Consistency > perfection","Don't quit after one bad day","Small progress daily matters","Sleep properly","Keep room/environment clean","Stay disciplined even when motivation is low"] },
+];
+
+const getTodayKey = () => new Date().toISOString().split("T")[0];
+
+function App() {
+  const [checked, setChecked] = React.useState({});
+  const [todayKey] = React.useState(getTodayKey());
+  const [activeSection, setActiveSection] = React.useState(null);
+
+  React.useEffect(() => {
+    const stored = localStorage.getItem("checklist_" + todayKey);
+    if (stored) setChecked(JSON.parse(stored));
+  }, [todayKey]);
+
+  React.useEffect(() => {
+    localStorage.setItem("checklist_" + todayKey, JSON.stringify(checked));
+  }, [checked, todayKey]);
+
+  const toggle = (sectionId, idx) => {
+    const key = sectionId + "_" + idx;
+    setChecked(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const totalItems = sections.reduce((a, s) => a + s.items.length, 0);
+  const doneItems = Object.values(checked).filter(Boolean).length;
+  const percent = Math.round((doneItems / totalItems) * 100);
+
+  const resetDay = () => setChecked({});
+  const sectionDone = s => s.items.filter((_, i) => checked[s.id + "_" + i]).length;
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#0A0A0F", fontFamily:"'DM Mono','Courier New',monospace", color:"#E8E6E0", padding:"0 0 80px 0" }}>
+      <div style={{ padding:"32px 16px 20px", background:"linear-gradient(180deg,#111118 0%,#0A0A0F 100%)", borderBottom:"1px solid rgba(255,255,255,0.06)", marginBottom:"20px" }}>
+        <div style={{ fontSize:11, letterSpacing:3, color:"#666", marginBottom:6, textTransform:"uppercase" }}>Daily Life Reset</div>
+        <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:42, letterSpacing:2, lineHeight:1, marginBottom:16 }}>TODAY'S CHECKLIST</div>
+        <div style={{ fontSize:11, color:"#555", marginBottom:14 }}>{new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</div>
+        <div style={{ background:"rgba(255,255,255,0.06)", borderRadius:8, height:8, marginBottom:8, overflow:"hidden" }}>
+          <div style={{ width:percent+"%", background: percent===100?"linear-gradient(90deg,#4CAF50,#81C784)":percent>60?"linear-gradient(90deg,#FF6B35,#FFB347)":"linear-gradient(90deg,#E63946,#FF6B35)", height:"100%", borderRadius:8, transition:"width 0.4s" }} />
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <span style={{ fontSize:12, color:"#888" }}>{doneItems} / {totalItems} done</span>
+          <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, color:percent===100?"#81C784":"#E8E6E0" }}>{percent}%</span>
+        </div>
+        {percent===100 && <div style={{ marginTop:10, padding:"8px 12px", background:"rgba(76,175,80,0.12)", borderRadius:6, border:"1px solid rgba(76,175,80,0.3)", fontSize:12, color:"#81C784", textAlign:"center" }}>🎉 PERFECT DAY. You crushed it.</div>}
+      </div>
+
+      {sections.map(section => {
+        const done = sectionDone(section);
+        const total = section.items.length;
+        const allDone = done === total;
+        const isOpen = activeSection === section.id;
+        return (
+          <div key={section.id} className="section-card" style={{ background:"#111118" }}>
+            <div className="section-header" style={{ background:allDone?"rgba(76,175,80,0.08)":"transparent" }}
+              onClick={() => setActiveSection(isOpen ? null : section.id)}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:20 }}>{section.emoji}</span>
+                <div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:1, color:allDone?"#81C784":"#E8E6E0" }}>{section.title}</div>
+                  <div style={{ fontSize:10, color:"#555", letterSpacing:1 }}>{section.subtitle}</div>
+                </div>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <div style={{ textAlign:"right" }}>
+                  <div style={{ fontSize:11, color:allDone?"#81C784":"#666" }}>{done}/{total}</div>
+                  <div style={{ width:40, height:3, background:"rgba(255,255,255,0.08)", borderRadius:2, marginTop:3 }}>
+                    <div style={{ width:((done/total)*100)+"%", height:"100%", background:section.color, borderRadius:2, transition:"width 0.3s" }} />
+                  </div>
+                </div>
+                <span className="arrow" style={{ transform:isOpen?"rotate(90deg)":"rotate(0deg)" }}>›</span>
+              </div>
+            </div>
+            {isOpen && (
+              <div style={{ borderTop:"1px solid rgba(255,255,255,0.06)" }}>
+                {section.note && <div style={{ padding:"8px 16px", fontSize:11, color:"#555", borderBottom:"1px solid rgba(255,255,255,0.04)", fontStyle:"italic" }}>{section.note}</div>}
+                {section.items.map((item, i) => {
+                  const isDone = !!checked[section.id+"_"+i];
+                  return (
+                    <div key={i} className="check-row" onClick={() => toggle(section.id, i)}>
+                      <div className="checkbox" style={{ background:isDone?section.color:"transparent", borderColor:isDone?"transparent":"rgba(255,255,255,0.25)" }}>
+                        {isDone && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                      </div>
+                      <span className={"label-text"+(isDone?" done":"")}>{item}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <div style={{ textAlign:"center", padding:"24px 16px 0", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
+        <div style={{ fontSize:11, color:"#444", letterSpacing:1 }}>CONSISTENCY &gt; PERFECTION</div>
+        <button className="reset-btn" onClick={resetDay}>RESET FOR TODAY</button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
